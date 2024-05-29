@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 
 namespace oinky_mod;
 
@@ -7,6 +8,8 @@ namespace oinky_mod;
 /// </summary>
 internal class Patches
 {
+    private static List<string> _bosses = new();
+
     /// <summary>
     /// Visual changes.
     /// </summary>
@@ -37,9 +40,14 @@ internal class Patches
     [HarmonyPatch(typeof(UI_BossHP), "ConnectWithEntity"), HarmonyPrefix]
     public static void BossHealthMult(FMFilterGrain __instance, Entity entity)
     {
-        entity.Health.MaxHealth *= Plugin.BossHealthMult.Value;
-        entity.Health.ScaleMaxHealth *= Plugin.BossHealthMult.Value;
-        entity.Health.CurrentHealth *= Plugin.BossHealthMult.Value;
+        if (!_bosses.Contains(entity.InternalName))
+        {
+            _bosses.Add(entity.InternalName);
+            entity.Health.MaxHealth *= Plugin.BossHealthMult.Value;
+            entity.Health.ScaleMaxHealth *= Plugin.BossHealthMult.Value;
+            entity.Health.CurrentHealth *= Plugin.BossHealthMult.Value;
+        }
+        Plugin.Logger.LogInfo($"(OinkyMod boss spawned) scalemhp: {entity.Health.ScaleMaxHealth} mhp: {entity.Health.MaxHealth} hp: {entity.Health.CurrentHealth}");
 
     } // end BossHealthMult
 
